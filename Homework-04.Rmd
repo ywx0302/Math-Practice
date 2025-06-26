@@ -1,0 +1,76 @@
+---
+title: "Homework 4: Diffusion of Tetracycline"
+output: pdf_document
+---
+
+We continue examining the diffusion of tetracycline among doctors in Illinois in the early 1950s, building on our work in lab 6.  You will need the data sets `ckm_nodes.csv` and `ckm_network.dat` from the labs.
+
+1. Clean the data to eliminate doctors for whom we have no adoption-date information, as in the labs.  Only use this cleaned data in the rest of the assignment.
+```{r, message=F}
+library(tidyverse)
+ckm_nodes <- read_csv('data/ckm_nodes.csv') 
+noinfor <- which(is.na(ckm_nodes$adoption_date))
+ckm_nodes <- ckm_nodes[-noinfor, ]
+ckm_network <- read.table('data/ckm_network.dat')
+ckm_network <- ckm_network[-noinfor, -noinfor]
+```
+
+2. Create a new data frame which records, for every doctor, for every month, whether that doctor began prescribing tetracycline that month, whether they had adopted tetracycline before that month, the number of their contacts who began prescribing strictly _before_ that month, and the number of their contacts who began prescribing in that month or earlier.  Explain why the dataframe should have 6 columns, and 2125 rows. 
+```{r}
+
+```
+
+3.  Let
+
+```{=latex}
+    \begin{equation}
+    \begin{split}
+    p_k & = \Pr(\text{A doctor starts prescribing tetracycline this month} \mid \\
+     & \text{Number of doctor's contacts prescribing before this month}=k) 
+     \end{split}
+     \end{equation}
+```
+
+and
+
+```{=latex}
+    \begin{equation}
+    \begin{split}
+     q_k & = \Pr(\text{A doctor starts prescribing tetracycline this month} \mid \\ 
+     & \text{Number of doctor's contacts prescribing this month}=k)
+     \end{split}
+     \end{equation}
+```
+
+   We suppose that $p_k$ and $q_k$ are the same for all months.
+  
+  a. Explain why there should be no more than $21$ values of $k$ for which we can estimate $p_k$ and $q_k$ directly from the data.
+```{r}
+
+```
+  b. Create a vector of estimated $p_k$ probabilities, using the data frame from (2).  Plot the probabilities against the number of prior-adoptee contacts $k$.
+```{r}
+
+```
+  c. Create a vector of estimated $q_k$ probabilities, using the data frame from (2). Plot the probabilities against the number of prior-or-contemporary-adoptee contacts $k$.
+```{r}
+
+```
+
+4. Because it only conditions on information from the previous month, $p_k$ is a little easier to interpret than $q_k$.  It is the probability per month that a doctor adopts tetracycline, if they have exactly $k$ contacts who had already adopted tetracycline.
+  a. Suppose $p_k = a + bk$.  This would mean that each friend who adopts the new drug increases the probability of adoption by an equal amount.  Estimate this model by least squares, using the values you constructed in (3b).  Report the parameter estimates.
+```{r}
+
+```
+  b. Suppose $p_k = e^{a+bk}/(1+e^{a+bk})$.  Explain, in words, what this model would imply about the impact of adding one more adoptee friend on a given doctor's probability of adoption.  (You can suppose that $b > 0$, if that makes it easier.)  Estimate the model by least squares, using the values you constructed in (3b).
+
+```{r}
+
+```
+  c. Plot the values from (3b) along with the estimated curves from (4a) and (4b).  (You should have one plot, with $k$ on the horizontal axis, and probabilities on the vertical axis .)  Which model do you prefer, and why?
+
+```{r}
+
+```
+
+_For quibblers, pedants, and idle hands itching for work to do_: The $p_k$ values from problem 3 aren't all equally precise, because they come from different numbers of observations.  Also, if each doctor with $k$ adoptee contacts is independently deciding whether or not to adopt with probability $p_k$, then the variance in the number of adoptees will depend on $p_k$.  Say that the actual proportion who decide to adopt is $\hat{p}_k$.  A little probability (exercise!) shows that in this situation, $\mathbb{E}[\hat{p}_k] = p_k$, but that $\mathrm{Var}[\hat{p}_k] = p_k(1-p_k)/n_k$, where $n_k$ is the number of doctors in that situation.  (We estimate probabilities more precisely when they're really extreme [close to 0 or 1], and/or we have lots of observations.)  We can estimate that variance as $\hat{V}_k = \hat{p}_k(1-\hat{p}_k)/n_k$.  Find the $\hat{V}_k$, and then re-do the estimation in (4a) and (4b) where the squared error for $p_k$ is divided by $\hat{V}_k$.  How much do the parameter estimates change?  How much do the plotted curves in (4c) change?

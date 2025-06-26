@@ -1,0 +1,94 @@
+---
+title: "Homework 2"
+output: pdf_document
+---
+```{r setup, message = F, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)
+library(DAAG)
+```
+
+The data set calif_penn_2011.csv contains information about the housing stock of California and Pennsylvania, as of 2011.  Information as aggregated into "Census tracts", geographic regions of a few thousand people which are supposed to be fairly homogeneous economically and socially.
+
+1. _Loading and cleaning_
+    a. Load the data into a dataframe called `ca_pa`.
+    b. How many rows and columns does the dataframe have?
+    c. Run this command, and explain, in words, what this does:
+```
+colSums(apply(ca_pa,c(1,2),is.na))
+```
+    d. The function `na.omit()` takes a dataframe and returns a new dataframe, omitting any row containing an NA value.  Use it to purge the data set of rows with incomplete data.
+    e. How many rows did this eliminate?
+    f. Are your answers in (c) and (e) compatible? Explain.
+
+2. _This Very New House_  
+    a. The variable `Built_2005_or_later` indicates the percentage of houses in each Census tract built since 2005.  Plot median house prices against this variable.
+    b. Make a new plot, or pair of plots, which breaks this out by state.  Note that the state is recorded in the `STATEFP` variable, with California being state 6 and Pennsylvania state 42.
+
+3. _Nobody Home_  
+The vacancy rate is the fraction of housing units which are not occupied.  The dataframe contains columns giving the total number of housing units for each Census tract, and the number of vacant housing units.  
+    a. Add a new column to the dataframe which contains the vacancy rate.  What are the minimum, maximum, mean, and median vacancy rates?
+    b. Plot the vacancy rate against median house value.
+    c. Plot vacancy rate against median house value separately for California and for Pennsylvania.  Is there a difference?
+    
+4. The column `COUNTYFP` contains a numerical code for counties within each state.  We are interested in Alameda County (county 1 in California), Santa Clara (county 85 in California), and Allegheny County (county 3 in Pennsylvania).
+    a. Explain what the block of code at the end of this question is supposed to accomplish, and how it does it.
+    b. Give a single line of R which gives the same final answer as the block of code.  Note: there are at least two ways to do this; you just have to find one.
+    c. For Alameda, Santa Clara and Allegheny Counties, what were the average percentages of housing built since 2005?
+    d. The `cor` function calculates the correlation coefficient between two variables.  What is the correlation between median house value and the percent of housing built since 2005 in (i) the whole data, (ii) all of California, (iii) all of Pennsylvania, (iv) Alameda County, (v) Santa Clara County and (vi) Allegheny County?
+    e. Make three plots, showing median house values against median income, for Alameda, Santa Clara, and Allegheny Counties.  (If you can fit the information into one plot, clearly distinguishing the three counties, that's OK too.)
+```{r, eval=FALSE}
+acca <- c()
+for (tract in 1:nrow(ca_pa)) {
+  if (ca_pa$STATEFP[tract] == 6) {
+    if (ca_pa$COUNTYFP[tract] == 1) {
+      acca <- c(acca, tract)
+    }
+  }
+}
+accamhv <- c()
+for (tract in acca) {
+  accamhv <- c(accamhv, ca_pa[tract,10])
+}
+median(accamhv)
+```
+
+MB.Ch1.11. Run the following code:
+```{r}
+gender <- factor(c(rep("female", 91), rep("male", 92)))
+table(gender)
+gender <- factor(gender, levels=c("male", "female"))
+table(gender)
+gender <- factor(gender, levels=c("Male", "female"))
+# Note the mistake: "Male" should be "male"
+table(gender)
+table(gender, exclude=NULL)
+rm(gender)  # Remove gender
+```
+Explain the output from the successive uses of table().
+     
+MB.Ch1.12. Write a function that calculates the proportion of values in a vector x that exceed some value cutoff.
+
+(a) Use the sequence of numbers 1, 2, . . . , 100 to check that this function gives the result that is expected.
+```{r}
+
+```
+
+(b) Obtain the vector ex01.36 from the Devore6 (or Devore7) package. These data give the times required for individuals to escape from an oil platform during a drill. Use dotplot() to show the distribution of times. Calculate the proportion of escape times that exceed 7 minutes.
+```{r}
+
+```
+
+MB.Ch1.18. The Rabbit data frame in the MASS library contains blood pressure change measurements on five rabbits (labeled as R1, R2, . . . ,R5) under various control and treatment conditions. Read the help file for more information. Use the unstack() function (three times) to convert Rabbit to the following form:
+
+Treatment Dose   R1   R2   R3   R4   R5 
+
+1 Control 6.25  0.50 1.00 0.75 1.25 1.5 
+
+2 Control 12.50 4.50 1.25 3.00 1.50 1.5 
+
+....
+```{r}
+
+```
+

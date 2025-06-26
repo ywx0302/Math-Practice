@@ -1,0 +1,68 @@
+---
+title: "Homework 3: The Death and Life of Great American City Scaling Laws"
+output: pdf_document
+---
+
+**Background**: In the previous lectures and lab, we fitted the following model
+\[
+ Y = y_0 N^a + \mathrm{noise}
+\]
+by minimizing the mean squared error
+\[
+ \frac{1}{n}\sum_{i=1}^{n}{(Y_i - y_0 N_i^a)^2}.
+\]
+
+We did this by approximating the derivative of the MSE, and adjusting $a$ by an amount proportional to that, stopping when the derivative became small.  Our procedure assumed we knew $y_0$.  In this assignment, we will use a built-in R function to estimate both parameters at once; it uses a fancier version of the same idea.
+
+Because the model is nonlinear, there is no simple formula for the parameter estimates in terms of the data.  Also unlike linear models, there is no simple formula for the _standard errors_ of the parameter estimates.  We will therefore use a technique called **the jackknife** to get approximate standard errors.
+
+Here is how the jackknife works:
+
+* Get a set of $n$ data points and get an estimate $\hat{\theta}$ for the  parameter of interest $\theta$.
+* For each data point $i$, remove $i$ from the data set, and get an  estimate $\hat{\theta}_{(-i)}$ from the remaining $n-1$ data points.  The $\hat{\theta}_{(-i)}$ are sometimes called the "jackknife estimates".
+* Find the mean $\overline{\theta}$ of the $n$ values of $\hat{\theta}_{(-i)}$
+* The jackknife variance of $\hat{\theta}$ is
+  \[
+  \frac{n-1}{n}\sum_{i=1}^{n}{(\hat{\theta}_{(-i)} - \overline{\theta})^2} = \frac{(n-1)^2}{n}\mathrm{var}{[\hat{\theta}_{(-i)}]}
+  \]
+where $\mathrm{var}$ stands for the sample variance.  (_Challenge_: can you explain the factor of $(n-1)^2/n$?  _Hint_: think about what happens when $n$ is large so $(n-1)/n \approx 1$.)
+* The jackknife standard error of $\hat{\theta}$ is the square root of the jackknife variance.
+  
+You will estimate the power-law scaling model, and its uncertainty, using the data alluded to in lecture, available in the file `gmp.dat` from lecture, which contains data for 2006.
+```
+gmp <- read.table("gmp.dat")
+gmp$pop <- round(gmp$gmp/gmp$pcgmp)
+```
+
+1. First, plot the data as in lecture, with per capita GMP on the y-axis and population on the x-axis. Add the curve function with the default values provided in lecture. Add two more curves corresponding to $a=0.1$ and $a=0.15$; use the `col` option to give each curve a different color (of your choice).
+
+2. Write a function, called `mse()`, which calculates the mean squared error of the model on a given data set. `mse()` should take three arguments: a numeric vector of length two, the first component standing for $y_0$ and the second for $a$; a numerical vector containing the values of $N$; and a numerical vector containing the values of $Y$.  The function should return a single numerical value. The latter two arguments should have as the default values the columns `pop` and `pcgmp` (respectively) from the `gmp` data frame from lecture.  Your function may not use `for()` or any other loop. Check that, with the default data, you get the following values.
+```
+> mse(c(6611,0.15))
+[1] 207057513
+> mse(c(5000,0.10))
+[1] 298459915
+```
+
+3. R has several built-in functions for optimization, which we will meet as we go through the course.  One of the simplest is `nlm()`, or non-linear minimization. `nlm()` takes two required arguments: a function, and a starting value for that function. Run `nlm()` three times with your function `mse()` and three starting value pairs for $y0$ and $a$ as in
+```
+nlm(mse, c(y0=6611,a=1/8))
+```
+What do the quantities `minimum` and `estimate` represent? What values does it return for these?
+
+4. Using `nlm()`, and the `mse()` function you wrote, write a function, `plm()`, which estimates the parameters $y_0$ and $a$ of the model by minimizing the mean squared error.  It should take the following arguments: an initial guess for $y_0$; an initial guess for $a$; a vector containing the $N$ values; a vector containing the $Y$ values.  All arguments except the initial guesses should have suitable default values.  It should return a list with the following components: the final guess for $y_0$; the final guess for $a$; the final value of the MSE.  Your function must call those you wrote in earlier questions (it should not repeat their code), and the appropriate arguments to `plm()` should be passed on to them.  
+What parameter estimate do you get when starting from $y_0 = 6611$ and $a = 0.15$?  From $y_0 = 5000$ and $a = 0.10$?  If these are not the same, why do they differ?  Which estimate has the lower MSE?  
+
+5. _Convince yourself the jackknife can work_.
+    a. Calculate the mean per-capita GMP across cities, and the standard error of this mean, using the built-in functions `mean()` and `sd()`, and the formula for the standard error of the mean you learned in your intro. stats. class (or looked up on Wikipedia...).
+    b. Write a function which takes in an integer `i`, and calculate the mean per-capita GMP for every city _except_ city number `i`.
+    c. Using this function, create a vector, `jackknifed.means`, which has the mean per-capita GMP where every city is held out in turn.  (You may use a `for` loop or `sapply()`.)
+    d. Using the vector `jackknifed.means`, calculate the jack-knife approximation to the standard error of the mean.  How well does it match your answer from part (a)?
+
+8. Write a function, `plm.jackknife()`, to calculate jackknife standard errors for the parameters $y_0$ and $a$.  It should take the same arguments as `plm()`, and return standard errors for both parameters.  This function should call your `plm()` function repeatedly.  What standard errors do you get for the two parameters?
+
+6. The file `gmp-2013.dat` contains measurements for 2013.  Load it, and use `plm()` and `plm.jackknife` to estimate the parameters of the model for 2013, and their standard errors.  Have the parameters of the model changed significantly?
+```{r}
+gmp2013 <- read.table('data/gmp-2013.dat', header = T)
+```
+
