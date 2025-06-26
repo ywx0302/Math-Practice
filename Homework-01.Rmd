@@ -1,0 +1,112 @@
+---
+title: "Homework 1"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+```{r setup, message = F, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)
+library(DAAG)
+```
+
+1. The Iowa data set `iowa.csv` is a toy example that summarises the yield of wheat (bushels per acre) for the state of Iowa between 1930-1962. In addition to yield, year, rainfall and temperature were recorded as the main predictors of yield.
+    a. First, we need to load the data set into R using the command `read.csv()`. Use the help function to learn what arguments this function takes. Once you have the necessary input, load the data set into R and make it a data frame called `iowa.df`.
+    b. How many rows and columns does `iowa.df` have? 
+    c. What are the names of the columns of `iowa.df`?
+    d. What is the value of row 5, column 7 of `iowa.df`?
+    e. Display the second row of `iowa.df` in its entirety.
+```{r}
+iowa.df<-read.csv("data/iowa.csv", sep = ';', header=T)
+```
+
+2. Syntax and class-typing.
+    a. For each of the following commands, either explain why they should be errors, or explain the non-erroneous result.
+
+```
+vector1 <- c("5", "12", "7", "32")
+max(vector1)
+sort(vector1)
+sum(vector1)
+```
+    b. For the next series of commands, either explain their results, or why they should produce errors.
+
+```
+vector2 <- c("5",7,12)
+vector2[2] + vector2[3]
+
+dataframe3 <- data.frame(z1="5",z2=7,z3=12)
+dataframe3[1,2] + dataframe3[1,3]
+
+list4 <- list(z1="6", z2=42, z3="49", z4=126)
+list4[[2]]+list4[[4]]
+list4[2]+list4[4]
+```
+
+3. Working with functions and operators.
+    a. The colon operator will create a sequence of integers in order. It is a special case of the function `seq()` which you saw earlier in this assignment. Using the help command `?seq` to learn about the function, design an expression that will give you the sequence of numbers from 1 to 10000 in increments of 372. Design another that will give you a sequence between 1 and 10000 that is exactly 50 numbers in length.
+    b. The function `rep()` repeats a vector some number of times. Explain the difference between `rep(1:3, times=3)` and `rep(1:3, each=3)`.
+
+
+MB.Ch1.2. The orings data frame gives data on the damage that had occurred in US space shuttle launches prior to the disastrous Challenger launch of 28 January 1986. The observations in rows 1, 2, 4, 11, 13, and 18 were included in the pre-launch charts used in deciding whether to proceed with the launch, while remaining rows were omitted.
+
+Create a new data frame by extracting these rows from orings, and plot total incidents against temperature for this new data frame. Obtain a similar plot for the full data set.
+
+
+MB.Ch1.4. For the data frame `ais` (DAAG package)
+
+(a) Use the function `str()` to get information on each of the columns. Determine whether any of the columns hold missing values.
+
+(b) Make a table that shows the numbers of males and females for each different sport. In which sports is there a large imbalance (e.g., by a factor of more than 2:1) in the numbers of the two sexes?
+
+MB.Ch1.6.Create a data frame called Manitoba.lakes that contains the lake's elevation (in meters above sea level) and area (in square kilometers) as listed below. Assign the names of the lakes using the `row.names()` function.
+
+```{=latex}
+\begin{table}[h!]
+  \begin{center}
+\begin{tabular}{l|r|r} \hline
+                & elevation & area \\ \hline
+Winnipeg        &     217   & 24387 \\
+Winnipegosis    &     254   & 5374 \\
+Manitoba        &     248   & 4624 \\
+SouthernIndian  &     254   & 2247 \\
+Cedar           &     253   & 1353 \\
+Island          &     227   & 1223 \\
+Gods            &     178   & 1151 \\
+Cross           &     207   & 755 \\
+Playgreen       &    217    & 657 \\\hline
+\end{tabular}
+\end{center}
+\end{table}
+```
+
+(a) Use the following code to plot `log2(area)` versus elevation, adding labeling information (there is an extreme value of area that makes a logarithmic scale pretty much essential):
+
+```{r}
+attach(Manitoba.lakes)
+plot(log2(area) ~ elevation, pch=16, xlim=c(170,280))
+# NB: Doubling the area increases log2(area) by 1.0
+text(log2(area) ~ elevation, labels=row.names(Manitoba.lakes), pos=4)
+text(log2(area) ~ elevation, labels=area, pos=2) 
+title("Manitoba's Largest Lakes")
+```
+
+Devise captions that explain the labeling on the points and on the y-axis. It will be necessary to explain how distances on the scale relate to changes in area.
+
+(b) Repeat the plot and associated labeling, now plotting area versus elevation, but specifying `ylog=TRUE` in order to obtain a logarithmic y-scale.
+```{r}
+plot(area ~ elevation, pch=16, xlim=c(170,280), ylog=T)
+text(area ~ elevation, labels=row.names(Manitoba.lakes), pos=4, ylog=T)
+text(area ~ elevation, labels=area, pos=2, ylog=T) 
+title("Manitoba's Largest Lakes")
+
+```
+
+MB.Ch1.7. Look up the help page for the R function `dotchart()`. Use this function to display the areas of the Manitoba lakes (a) on a linear scale, and (b) on a logarithmic scale. Add, in each case, suitable labeling information.
+```{r}
+dotchart(log2(area))
+```
+
+MB.Ch1.8. Using the `sum()` function, obtain a lower bound for the area of Manitoba covered by water.
+
