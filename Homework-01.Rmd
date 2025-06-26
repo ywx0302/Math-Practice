@@ -1,64 +1,287 @@
 ---
 title: "Homework 1"
+author: "ywx 3220101739"
 output:
-  pdf_document: default
+  pdf_document:
+    latex_engine: xelatex
+    extra_dependencies: ["ctex"]
   html_document:
     df_print: paged
 ---
+
 ```{r setup, message = F, include=FALSE}
 options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(DAAG)
+Sys.setlocale("LC_CTYPE", "en_US.UTF-8")
 ```
 
-1. The Iowa data set `iowa.csv` is a toy example that summarises the yield of wheat (bushels per acre) for the state of Iowa between 1930-1962. In addition to yield, year, rainfall and temperature were recorded as the main predictors of yield.
-    a. First, we need to load the data set into R using the command `read.csv()`. Use the help function to learn what arguments this function takes. Once you have the necessary input, load the data set into R and make it a data frame called `iowa.df`.
-    b. How many rows and columns does `iowa.df` have? 
-    c. What are the names of the columns of `iowa.df`?
-    d. What is the value of row 5, column 7 of `iowa.df`?
-    e. Display the second row of `iowa.df` in its entirety.
+# 1.
+
+The Iowa data set `iowa.csv` is a toy example that summarises the yield of wheat (bushels per acre) for the state of Iowa between 1930-1962. In addition to yield, year, rainfall and temperature were recorded as the main predictors of yield.
+
+```         
+a. First, we need to load the data set into R using the command `read.csv()`. Use the help function to learn what arguments this function takes. Once you have the necessary input, load the data set into R and make it a data frame called `iowa.df`.
+b. How many rows and columns does `iowa.df` have? 
+c. What are the names of the columns of `iowa.df`?
+d. What is the value of row 5, column 7 of `iowa.df`?
+e. Display the second row of `iowa.df` in its entirety.
+```
+
 ```{r}
-iowa.df<-read.csv("data/iowa.csv", sep = ';', header=T)
+# (a) 加载数据
+iowa.df <- read.csv("data/Iowa.csv", sep = ";", header = TRUE)
+
+# (b) 行数和列数
+cat("Number of rows:", nrow(iowa.df), "\n")
+cat("Number of columns:", ncol(iowa.df), "\n")
+
+# (c) 列名
+cat("Column names:", names(iowa.df), "\n")
+
+# (d) 第5行第7列的值
+cat("Value at row 5, column 7:", iowa.df[5, 7], "\n")
+
+# (e) 显示第2行
+print(iowa.df[2, ])
+
 ```
 
-2. Syntax and class-typing.
-    a. For each of the following commands, either explain why they should be errors, or explain the non-erroneous result.
+# 2.
 
-```
+Syntax and class-typing. a. For each of the following commands, either explain why they should be errors, or explain the non-erroneous result.
+
+```         
 vector1 <- c("5", "12", "7", "32")
 max(vector1)
 sort(vector1)
 sum(vector1)
 ```
-    b. For the next series of commands, either explain their results, or why they should produce errors.
 
-```
-vector2 <- c("5",7,12)
-vector2[2] + vector2[3]
+## a. 分析
 
-dataframe3 <- data.frame(z1="5",z2=7,z3=12)
-dataframe3[1,2] + dataframe3[1,3]
-
-list4 <- list(z1="6", z2=42, z3="49", z4=126)
-list4[[2]]+list4[[4]]
-list4[2]+list4[4]
+```{r a-vector}
+vector1 <- c("5", "12", "7", "32")
 ```
 
-3. Working with functions and operators.
-    a. The colon operator will create a sequence of integers in order. It is a special case of the function `seq()` which you saw earlier in this assignment. Using the help command `?seq` to learn about the function, design an expression that will give you the sequence of numbers from 1 to 10000 in increments of 372. Design another that will give you a sequence between 1 and 10000 that is exactly 50 numbers in length.
-    b. The function `rep()` repeats a vector some number of times. Explain the difference between `rep(1:3, times=3)` and `rep(1:3, each=3)`.
+1.  **`max(vector1)`**
 
+    ```{r a-max}
+    max(vector1)  # 返回 "7"
+    ```
+
+    **解释**：对字符型向量按字典序取最大值，“7”是最大的。
+
+2.  **`sort(vector1)`**
+
+    ```{r a-sort}
+    sort(vector1)  # 返回 c("12", "32", "5", "7")
+    ```
+
+    **解释**：按字符的ASCII码顺序排序，有“1”\<“3”\<“5”\<“7”。
+
+3.  **`sum(vector1)`**
+
+    ```{r a-sum, error=TRUE}
+    sum(vector1)
+    ```
+
+    **错误原因**：字符型不能直接求和。
+
+------------------------------------------------------------------------
+
+## b. 分析
+
+### 向量操作
+
+```{r b-vector}
+vector2 <- c("5", 7, 12)  # 自动转为字符型
+class(vector2)            # 验证类型
+```
+
+1.  **修正后的加法操作**
+
+    ```{r b-vector-add}
+    # 需要显式转换为数值型
+    as.numeric(vector2[2]) + as.numeric(vector2[3])  # 返回 19
+    ```
+
+    **修正**：使用 `as.numeric()`进行类型转换，原本的字符型无法相加（会显示错误）。
+
+### 数据框操作
+
+```{r b-df}
+dataframe3 <- data.frame(z1 = "5", z2 = 7, z3 = 12)
+```
+
+2.  **数据框加法**
+
+    ```{r b-df-add}
+    dataframe3[1,2] + dataframe3[1,3]  # 返回 19
+    ```
+
+    **原因**：R 的 data.frame允许不同列有不同的数据类型，由于7和12是数值型，所以可以相加。（保存的“5”是字符型）
+
+### 列表操作
+
+```{r b-list}
+list4 <- list(z1 = "6", z2 = 42, z3 = "49", z4 = 126)
+```
+
+3.  **列表元素加法**
+
+    ```{r b-list-double}
+    list4[[2]] + list4[[4]]  # 返回 168
+    ```
+
+4.  **子列表加法（错误）**
+
+    ```{r b-list-single, error=TRUE}
+    list4[2] + list4[4]
+    ```
+
+    **原因**：单中括号[]返回一个子列表，列表不能直接相加；双中括号 [[]]直接提取元素本身（如果是数值，就是数值）。
+
+# 3.
+
+Working with functions and operators. a. The colon operator will create a sequence of integers in order. It is a special case of the function `seq()` which you saw earlier in this assignment. Using the help command `?seq` to learn about the function, design an expression that will give you the sequence of numbers from 1 to 10000 in increments of 372. Design another that will give you a sequence between 1 and 10000 that is exactly 50 numbers in length. b. The function `rep()` repeats a vector some number of times. Explain the difference between `rep(1:3, times=3)` and `rep(1:3, each=3)`.
+
+## a
+
+```{r}
+seq(from = 1, to = 10000, by = 372)
+seq(from = 1, to = 10000, length.out = 50)
+```
+
+## b
+
+### 1.整体重复3次
+
+```{r}
+rep(1:3, times = 3) 
+```
+
+### 2.每个元素重复3次
+
+```{r}
+rep(1:3, each = 3) 
+```
 
 MB.Ch1.2. The orings data frame gives data on the damage that had occurred in US space shuttle launches prior to the disastrous Challenger launch of 28 January 1986. The observations in rows 1, 2, 4, 11, 13, and 18 were included in the pre-launch charts used in deciding whether to proceed with the launch, while remaining rows were omitted.
 
 Create a new data frame by extracting these rows from orings, and plot total incidents against temperature for this new data frame. Obtain a similar plot for the full data set.
 
+## 1.数据准备
+
+```{r}
+# 加载DAAG包中的orings数据集
+data(orings, package = "DAAG")
+# 提取关键行(1,2,4,11,13,18)
+critical_rows <- c(1, 2, 4, 11, 13, 18)
+orings_critical <- orings[critical_rows, ]
+# 显示关键子集
+head(orings_critical)
+```
+
+## 2.关键子集数据可视化
+
+```{r}
+ggplot(orings_critical, aes(x = Temperature, y = Total)) +
+  geom_point(size = 3, color = "red") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred") +
+  labs(title = "O-Ring Damage in Critical Pre-Launch Decisions",
+       x = "Temperature (Fahrenheit)", 
+       y = "Number of Damage Incidents") +
+  theme_minimal()
+```
+
+## 3. 完整数据集可视化
+
+```{r}
+ggplot(orings, aes(x = Temperature, y = Total)) +
+  geom_point(size = 3, alpha = 0.6) +
+  geom_point(data = orings_critical, 
+             color = "red", size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Complete O-Ring Damage Dataset (Red Points = Critical Data)",
+       x = "Temperature (Fahrenheit)", 
+       y = "Number of Damage Incidents") +
+  theme_minimal()
+```
 
 MB.Ch1.4. For the data frame `ais` (DAAG package)
 
 (a) Use the function `str()` to get information on each of the columns. Determine whether any of the columns hold missing values.
 
 (b) Make a table that shows the numbers of males and females for each different sport. In which sports is there a large imbalance (e.g., by a factor of more than 2:1) in the numbers of the two sexes?
+
+## a.
+
+```{r}
+# 查看数据结构
+str(ais)
+
+# 检查缺失值
+missing_values <- sapply(ais, function(x) sum(is.na(x)))
+
+# 创建中文数据框（确保文件保存为UTF-8编码）
+missing_df <- data.frame(
+  变量名 = names(missing_values),
+  缺失值数量 = unname(missing_values),  # 移除names属性
+  row.names = NULL,
+  stringsAsFactors = FALSE
+)
+
+# 显示美观表格
+knitr::kable(missing_df, 
+             caption = "各变量缺失值统计",
+             col.names = c("变量名称", "缺失值数量"))
+```
+
+## b.性别比例分析
+
+```{r}
+# 创建交叉表
+gender_table <- table(ais$sex, ais$sport)
+
+# 转换为数据框并重命名列
+gender_df <- as.data.frame(gender_table, responseName = "人数")
+names(gender_df)[1:2] <- c("性别", "运动项目")
+
+# 计算比例并筛选失衡项目
+library(dplyr)
+imbalance_details <- gender_df %>%
+  group_by(运动项目) %>%
+  mutate(
+    总人数 = sum(人数),
+    比例 = 人数/总人数
+  ) %>%
+  filter(比例 > 2/3) %>%  # 筛选比例>66.7%的项目
+  mutate(
+    对比性别 = ifelse(性别 == "m", "f", "m"),
+    对比人数 = 总人数 - 人数,
+    比例显示 = paste0(round(比例/(1-比例), 1), ":1")
+  )
+
+# 显示完整分布表
+knitr::kable(gender_df, caption = "各运动项目男女运动员人数分布")
+
+# 显示详细的失衡项目信息
+# cat("\n\n**性别比例失衡(>2:1)的运动项目详情：**\n")
+for(i in 1:nrow(imbalance_details)){
+  item <- imbalance_details[i,]
+  cat(sprintf(
+    "%s：%s %d人 vs %s %d人（比例 %s）\n",
+    item$运动项目,
+    ifelse(item$性别=="m", "男性", "女性"),
+    item$人数,
+    ifelse(item$对比性别=="m", "男性", "女性"), 
+    item$对比人数,
+    item$比例显示
+  ))
+}
+```
 
 MB.Ch1.6.Create a data frame called Manitoba.lakes that contains the lake's elevation (in meters above sea level) and area (in square kilometers) as listed below. Assign the names of the lakes using the `row.names()` function.
 
@@ -84,10 +307,25 @@ Playgreen       &    217    & 657 \\\hline
 (a) Use the following code to plot `log2(area)` versus elevation, adding labeling information (there is an extreme value of area that makes a logarithmic scale pretty much essential):
 
 ```{r}
+# 创建 Manitoba.lakes 数据框
+Manitoba.lakes <- data.frame(
+  elevation = c(217, 254, 248, 254, 253, 227, 178, 207, 217),
+  area = c(24387, 5374, 4624, 2247, 1353, 1223, 1151, 755, 657)
+)
+
+# 设置行名为湖泊名称
+row.names(Manitoba.lakes) <- c("Winnipeg", "Winnipegosis", "Manitoba", 
+                              "SouthernIndian", "Cedar", "Island", 
+                              "Gods", "Cross", "Playgreen")
+
+# 绘制图形
 attach(Manitoba.lakes)
-plot(log2(area) ~ elevation, pch=16, xlim=c(170,280))
-# NB: Doubling the area increases log2(area) by 1.0
+plot(log2(area) ~ elevation, pch=16, xlim=c(170,280), 
+     xlab="Elevation (meters above sea level)", 
+     ylab="log2(Area in square km)")
+# 在点右侧添加湖泊名称标签
 text(log2(area) ~ elevation, labels=row.names(Manitoba.lakes), pos=4)
+# 在点左侧添加实际面积值
 text(log2(area) ~ elevation, labels=area, pos=2) 
 title("Manitoba's Largest Lakes")
 ```
@@ -95,18 +333,79 @@ title("Manitoba's Largest Lakes")
 Devise captions that explain the labeling on the points and on the y-axis. It will be necessary to explain how distances on the scale relate to changes in area.
 
 (b) Repeat the plot and associated labeling, now plotting area versus elevation, but specifying `ylog=TRUE` in order to obtain a logarithmic y-scale.
+
 ```{r}
-plot(area ~ elevation, pch=16, xlim=c(170,280), ylog=T)
-text(area ~ elevation, labels=row.names(Manitoba.lakes), pos=4, ylog=T)
-text(area ~ elevation, labels=area, pos=2, ylog=T) 
-title("Manitoba's Largest Lakes")
+# 使用ylog=TRUE绘制对数坐标图形
+plot(area ~ elevation, 
+     pch = 16, 
+     xlim = c(170, 280), 
+     ylog = TRUE,  # 使用对数y轴(默认以10为底)
+     xlab = "Elevation (meters above sea level)",
+     ylab = "Area (square km, logarithmic scale)",
+     main = "Manitoba's Largest Lakes (log10 scale)")
+
+# 添加湖泊名称标签(右侧)
+text(area ~ elevation, 
+     labels = row.names(Manitoba.lakes), 
+     pos = 4, 
+     ylog = TRUE)  # 注意这里也需要指定ylog=TRUE
+
+# 添加面积数值标签(左侧)
+text(area ~ elevation, 
+     labels = area, 
+     pos = 2, 
+     ylog = TRUE)  # 注意这里也需要指定ylog=TRUE
 
 ```
 
 MB.Ch1.7. Look up the help page for the R function `dotchart()`. Use this function to display the areas of the Manitoba lakes (a) on a linear scale, and (b) on a logarithmic scale. Add, in each case, suitable labeling information.
+
 ```{r}
 dotchart(log2(area))
 ```
 
+## a.线性
+```{r}
+# (a) 线性尺度点图
+dotchart(Manitoba.lakes$area,
+         labels = row.names(Manitoba.lakes),
+         xlab = "Area (square km)",
+         main = "Manitoba Lakes Areas (Linear Scale)",
+         pch = 16,
+         color = "blue")
+
+# 添加说明
+mtext("Linear scale shows extreme dominance of Lake Winnipeg", 
+      side = 1, line = 3, cex = 0.8)
+```
+
+## 对数
+```{r}
+# (b) 对数尺度点图
+dotchart(log2(Manitoba.lakes$area),
+         labels = row.names(Manitoba.lakes),
+         xlab = "log2(Area in square km)",
+         main = "Manitoba Lakes Areas (Logarithmic Scale)",
+         pch = 16,
+         color = "red")
+
+# 添加参考线
+abline(v = seq(10, 15, by = 1), col = "gray", lty = 2)
+
+# 添加解释性文本
+mtext("Log2 scale: Each unit increase doubles the area", 
+      side = 1, line = 3, cex = 0.8)
+mtext("Reference lines at log2(area) = 10 to 15", 
+      side = 1, line = 4, cex = 0.8)
+```
 MB.Ch1.8. Using the `sum()` function, obtain a lower bound for the area of Manitoba covered by water.
 
+```{r}
+# 计算所有湖泊面积总和
+total_water_area <- sum(Manitoba.lakes$area)
+
+# 打印结果
+cat("Lower bound estimate for Manitoba's water-covered area:", 
+    format(total_water_area, big.mark = ","), "square kilometers\n")
+
+```
