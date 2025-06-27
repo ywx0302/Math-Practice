@@ -1,94 +1,422 @@
 ---
 title: "Homework 2"
-output: pdf_document
+author: "ywx 3220101739"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    extra_dependencies: ["ctex"]
+  html_document:
+    df_print: paged
 ---
+
 ```{r setup, message = F, include=FALSE}
 options(htmltools.dir.version = FALSE)
 library(tidyverse)
 library(DAAG)
+library(ggplot2)
+library(Devore7)
+library(lattice)
 ```
 
-The data set calif_penn_2011.csv contains information about the housing stock of California and Pennsylvania, as of 2011.  Information as aggregated into "Census tracts", geographic regions of a few thousand people which are supposed to be fairly homogeneous economically and socially.
+The data set calif_penn_2011.csv contains information about the housing stock of California and Pennsylvania, as of 2011. Information as aggregated into "Census tracts", geographic regions of a few thousand people which are supposed to be fairly homogeneous economically and socially.
 
-1. _Loading and cleaning_
-    a. Load the data into a dataframe called `ca_pa`.
-    b. How many rows and columns does the dataframe have?
-    c. Run this command, and explain, in words, what this does:
-```
+1.  *Loading and cleaning*
+
+    a.  Load the data into a dataframe called `ca_pa`.
+    b.  How many rows and columns does the dataframe have?
+    c.  Run this command, and explain, in words, what this does:
+
+    ```         
+    colSums(apply(ca_pa,c(1,2),is.na))
+    ```
+
+    d.  The function `na.omit()` takes a dataframe and returns a new dataframe, omitting any row containing an NA value. Use it to purge the data set of rows with incomplete data.
+    e.  How many rows did this eliminate?
+    f.  Are your answers in (c) and (e) compatible? Explain.
+
+```{r}
+# 1a. 加载数据
+ca_pa <- read.csv("data/calif_penn_2011.csv")
+
+# 1b. 查看行列数
+dim(ca_pa)  
+
+# 1c. apply(ca_pa, c(1,2), is.na)对数据框的每个元素检查是否为NA，返回一个逻辑值矩阵；
+# colSums() - 对每列的TRUE值(即NA值)进行求和。
+# 所以会计算数据框中每一列中缺失值(NA)的数量
 colSums(apply(ca_pa,c(1,2),is.na))
+
+# 1d. 使用na.omit()删除含NA的行
+ca_pa_clean <- na.omit(ca_pa)
+
+# 1e. 计算被删除的行数
+rows_eliminated <- nrow(ca_pa) - nrow(ca_pa_clean)
+rows_eliminated
+
+# 1f. 检查c,e是否兼容
+na_per_col <- colSums(is.na(ca_pa))
+max_na <- max(na_per_col)
+total_na <- sum(na_per_col)
+rows_eliminated >= max_na && rows_eliminated <= total_na
 ```
-    d. The function `na.omit()` takes a dataframe and returns a new dataframe, omitting any row containing an NA value.  Use it to purge the data set of rows with incomplete data.
-    e. How many rows did this eliminate?
-    f. Are your answers in (c) and (e) compatible? Explain.
 
-2. _This Very New House_  
-    a. The variable `Built_2005_or_later` indicates the percentage of houses in each Census tract built since 2005.  Plot median house prices against this variable.
-    b. Make a new plot, or pair of plots, which breaks this out by state.  Note that the state is recorded in the `STATEFP` variable, with California being state 6 and Pennsylvania state 42.
+**解释**：c中计算的是各列中NA的数量，e的结果为删去含有NA的行数。含有NA最多的列的所有NA所在的行必须被删除，且可能有多列共享同一行的NA，因此有max_na \<= rows_eliminated \<= total_na成立。
 
-3. _Nobody Home_  
-The vacancy rate is the fraction of housing units which are not occupied.  The dataframe contains columns giving the total number of housing units for each Census tract, and the number of vacant housing units.  
-    a. Add a new column to the dataframe which contains the vacancy rate.  What are the minimum, maximum, mean, and median vacancy rates?
-    b. Plot the vacancy rate against median house value.
-    c. Plot vacancy rate against median house value separately for California and for Pennsylvania.  Is there a difference?
-    
-4. The column `COUNTYFP` contains a numerical code for counties within each state.  We are interested in Alameda County (county 1 in California), Santa Clara (county 85 in California), and Allegheny County (county 3 in Pennsylvania).
-    a. Explain what the block of code at the end of this question is supposed to accomplish, and how it does it.
-    b. Give a single line of R which gives the same final answer as the block of code.  Note: there are at least two ways to do this; you just have to find one.
-    c. For Alameda, Santa Clara and Allegheny Counties, what were the average percentages of housing built since 2005?
-    d. The `cor` function calculates the correlation coefficient between two variables.  What is the correlation between median house value and the percent of housing built since 2005 in (i) the whole data, (ii) all of California, (iii) all of Pennsylvania, (iv) Alameda County, (v) Santa Clara County and (vi) Allegheny County?
-    e. Make three plots, showing median house values against median income, for Alameda, Santa Clara, and Allegheny Counties.  (If you can fit the information into one plot, clearly distinguishing the three counties, that's OK too.)
+2.  *This Very New House*
+
+    a.  The variable `Built_2005_or_later` indicates the percentage of houses in each Census tract built since 2005. Plot median house prices against this variable.
+    b.  Make a new plot, or pair of plots, which breaks this out by state. Note that the state is recorded in the `STATEFP` variable, with California being state 6 and Pennsylvania state 42.
+
+    ```{r}
+    # 移除有缺失值的行
+    ca_pa_clean <- ca_pa %>%
+      filter(!is.na(Median_house_value),
+             !is.na(Built_2005_or_later),
+             is.finite(Median_house_value),
+             is.finite(Built_2005_or_later))
+    # 使用清理后的数据
+    ggplot(ca_pa_clean, aes(x = Built_2005_or_later, y = Median_house_value)) +
+      geom_point(alpha = 0.5) +
+      geom_smooth(method = "lm", se = FALSE, color = "red") +
+      labs(x = "Percentage of Houses Built Since 2005", 
+           y = "Median House Value",
+           title = paste("House Value vs. New Construction Percentage",
+                        "\n(Removed", nrow(ca_pa) - nrow(ca_pa_clean), "rows with missing/invalid values)")) +
+      theme_minimal()
+
+    # 创建州名变量并清理数据
+    ca_pa_clean <- ca_pa %>%
+      mutate(State = case_when(
+        STATEFP == "6" ~ "California",
+        STATEFP == "42" ~ "Pennsylvania",
+        TRUE ~ "Other"
+      )) %>%
+      filter(!is.na(Median_house_value),
+             !is.na(Built_2005_or_later),
+             is.finite(Median_house_value),
+             is.finite(Built_2005_or_later),
+             Built_2005_or_later >= 0 & Built_2005_or_later <= 100,
+             Median_house_value > 0)
+
+    # 绘制分面图
+    ggplot(ca_pa_clean, aes(x = Built_2005_or_later, y = Median_house_value, color = State)) +
+      geom_point(alpha = 0.5) +
+      geom_smooth(method = "lm", se = FALSE) +
+      facet_wrap(~ State, scales = "free") +
+      labs(x = "Percentage of Houses Built Since 2005", 
+           y = "Median House Value",
+           title = paste("House Value vs. New Construction by State",
+                        "\n(Removed", nrow(ca_pa) - nrow(ca_pa_clean), "rows)")) +
+      theme_minimal()
+    ```
+
+3.  *Nobody Home*\
+    The vacancy rate is the fraction of housing units which are not occupied. The dataframe contains columns giving the total number of housing units for each Census tract, and the number of vacant housing units.
+
+    a.  Add a new column to the dataframe which contains the vacancy rate. What are the minimum, maximum, mean, and median vacancy rates?
+    b.  Plot the vacancy rate against median house value.
+    c.  Plot vacancy rate against median house value separately for California and for Pennsylvania. Is there a difference?
+
+```{r}
+# 添加空置率列
+ca_pa <- ca_pa %>%
+  mutate(Vacancy_rate = Vacant_units / Total_units)
+# 计算统计量
+vacancy_stats <- ca_pa %>%
+  summarise(
+    Min = min(Vacancy_rate, na.rm = TRUE),
+    Max = max(Vacancy_rate, na.rm = TRUE),
+    Mean = mean(Vacancy_rate, na.rm = TRUE),
+    Median = median(Vacancy_rate, na.rm = TRUE)
+  )
+print(vacancy_stats)
+```
+
+```{r}
+# 3b.绘制空置率与房价中位数的关系图(使用清理后的数据)
+ca_pa_clean <- ca_pa_clean %>%
+  mutate(Vacancy_rate = Vacant_units / Total_units)
+ggplot(ca_pa_clean, aes(x = Vacancy_rate, y = Median_house_value)) +
+  geom_point(alpha = 0.3, color = "steelblue") +
+  geom_smooth(method = "loess", color = "red", se = FALSE) +
+  labs(x = "Vacancy Rate", 
+       y = "Median House Value",
+       title = "House Value vs. Vacancy Rate") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::dollar) +  # 房价用美元格式
+  scale_x_continuous(labels = scales::percent)   # 空置率用百分比格式
+```
+
+```{r}
+# 3c
+ca_pa_clean <- ca_pa %>%
+  mutate(State = case_when(
+    STATEFP == "6" ~ "California",  
+    STATEFP == "42" ~ "Pennsylvania",
+    TRUE ~ "Other"
+  )) %>%
+  # 计算空置率
+  mutate(Vacancy_rate = Vacant_units / Total_units) %>%  # 替换为实际列名
+  # 数据清理
+  filter(
+    State != "Other",
+    !is.na(Median_house_value),
+    !is.na(Vacancy_rate),
+    is.finite(Median_house_value),
+    is.finite(Vacancy_rate),
+    Vacancy_rate >= 0 & Vacancy_rate <= 1,  # 空置率应在0-1之间
+    Median_house_value > 0
+  )
+
+# 2. 绘制分面图（使用清理后的数据ca_pa_clean）
+ggplot(ca_pa_clean, aes(x = Vacancy_rate, y = Median_house_value)) +
+  geom_point(alpha = 0.3, aes(color = State)) +  # 颜色映射到State
+  geom_smooth(method = "loess", se = FALSE, aes(color = State)) +  # 颜色映射
+  facet_wrap(~ State, scales = "free_y") +  # 按State分面
+  labs(x = "Vacancy Rate", 
+       y = "Median House Value",
+       title = "House Value vs. Vacancy Rate by State") +
+  theme_minimal() +
+  scale_color_manual(values = c("California" = "#F8766D", 
+                              "Pennsylvania" = "#00BFC4")) +
+  scale_x_continuous(labels = scales::percent) +  # x轴显示为百分比
+  scale_y_continuous(labels = scales::dollar)    # y轴显示为美元
+
+# 3. 差异检验（同样使用清理后的数据）
+ca_vacancy <- ca_pa_clean %>% 
+  filter(State == "California") %>% 
+  pull(Vacancy_rate)
+pa_vacancy <- ca_pa_clean %>% 
+  filter(State == "Pennsylvania") %>% 
+  pull(Vacancy_rate)
+t_test_result <- t.test(ca_vacancy, pa_vacancy)
+print(paste("加州和宾州空置率差异p值:", round(t_test_result$p.value, 4)))
+```
+
+4.  The column `COUNTYFP` contains a numerical code for counties within each state. We are interested in Alameda County (county 1 in California), Santa Clara (county 85 in California), and Allegheny County (county 3 in Pennsylvania).
+
+    a.  Explain what the block of code at the end of this question is supposed to accomplish, and how it does it.
+    b.  Give a single line of R which gives the same final answer as the block of code. Note: there are at least two ways to do this; you just have to find one.
+    c.  For Alameda, Santa Clara and Allegheny Counties, what were the average percentages of housing built since 2005?
+    d.  The `cor` function calculates the correlation coefficient between two variables. What is the correlation between median house value and the percent of housing built since 2005 in (i) the whole data, (ii) all of California, (iii) all of Pennsylvania, (iv) Alameda County, (v) Santa Clara County and (vi) Allegheny County?
+    e.  Make three plots, showing median house values against median income, for Alameda, Santa Clara, and Allegheny Counties. (If you can fit the information into one plot, clearly distinguishing the three counties, that's OK too.)
+
 ```{r, eval=FALSE}
-acca <- c()
-for (tract in 1:nrow(ca_pa)) {
-  if (ca_pa$STATEFP[tract] == 6) {
-    if (ca_pa$COUNTYFP[tract] == 1) {
-      acca <- c(acca, tract)
+# 4a. 代码块的功能及实现原理
+  #遍历数据框的每一行，筛选出同时满足以下条件的行索引：州代码为6（加州）县代码为1（Alameda县）
+  #结果：acca是一个向量，存储所有Alameda县普查区的行号（索引）
+    acca <- c()
+    for (tract in 1:nrow(ca_pa)) {
+      if (ca_pa$STATEFP[tract] == 6) {
+        if (ca_pa$COUNTYFP[tract] == 1) {
+          acca <- c(acca, tract)
+        }
+      }
     }
-  }
-}
-accamhv <- c()
-for (tract in acca) {
-  accamhv <- c(accamhv, ca_pa[tract,10])
-}
-median(accamhv)
+  #根据第一部分的行索引，从数据框的第10列（假设是房价列）提取Alameda县所有普查区的房价值。
+  #结果：accamhv是一个向量，存储Alameda县的房价数据。  
+    accamhv <- c()
+    for (tract in acca) {
+      accamhv <- c(accamhv, ca_pa[tract,10])
+    }
+  #计算accamhv的中位数，即Alameda县的房价中位数。
+    median(accamhv)
+```
+```{r}
+#4b.
+median(ca_pa$Median_house_value[ca_pa$STATEFP == 6 & ca_pa$COUNTYFP == 1], na.rm = TRUE)
+```
+```{r}
+#4c.计算三县2005年后新建房屋的平均百分比
+ca_pa %>%
+  filter(
+    (STATEFP == 6 & COUNTYFP == 1) |    # Alameda, CA
+    (STATEFP == 6 & COUNTYFP == 85) |   # Santa Clara, CA
+    (STATEFP == 42 & COUNTYFP == 3)     # Allegheny, PA
+  ) %>%
+  group_by(STATEFP, COUNTYFP) %>%
+  summarise(
+    Avg_Percent_New_Housing = mean(Built_2005_or_later, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+```{r}
+#4d
+library(dplyr)
+# (i) 全部数据
+cor_all <- cor(ca_pa$Median_house_value, ca_pa$Built_2005_or_later, use = "complete.obs")
+
+# (ii) 加州全部
+cor_ca <- ca_pa %>%
+  filter(STATEFP == 6) %>%
+  summarise(cor = cor(Median_house_value, Built_2005_or_later, use = "complete.obs")) %>%
+  pull(cor)
+
+# (iii) 宾州全部
+cor_pa <- ca_pa %>%
+  filter(STATEFP == 42) %>%
+  summarise(cor = cor(Median_house_value, Built_2005_or_later, use = "complete.obs")) %>%
+  pull(cor)
+
+# (iv) Alameda县 (CA-1)
+cor_alameda <- ca_pa %>%
+  filter(STATEFP == 6, COUNTYFP == 1) %>%
+  summarise(cor = cor(Median_house_value, Built_2005_or_later, use = "complete.obs")) %>%
+  pull(cor)
+
+# (v) Santa Clara县 (CA-85)
+cor_santa_clara <- ca_pa %>%
+  filter(STATEFP == 6, COUNTYFP == 85) %>%
+  summarise(cor = cor(Median_house_value, Built_2005_or_later, use = "complete.obs")) %>%
+  pull(cor)
+
+# (vi) Allegheny县 (PA-3)
+cor_allegheny <- ca_pa %>%
+  filter(STATEFP == 42, COUNTYFP == 3) %>%
+  summarise(cor = cor(Median_house_value, Built_2005_or_later, use = "complete.obs")) %>%
+  pull(cor)
+
+# 汇总结果
+results <- data.frame(
+  Region = c("All Data", "California", "Pennsylvania", 
+             "Alameda County", "Santa Clara County", "Allegheny County"),
+  Correlation = round(c(cor_all, cor_ca, cor_pa, 
+                      cor_alameda, cor_santa_clara, cor_allegheny), 3)
+)
+
+print(results)
+```
+```{r}
+#4e
+  #创建目标县数据集 
+target_counties <- ca_pa %>%
+  filter(
+    (STATEFP == 6 & COUNTYFP == 1) |    
+    (STATEFP == 6 & COUNTYFP == 85) |   
+    (STATEFP == 42 & COUNTYFP == 3)     
+  ) %>%
+  mutate(
+    County = case_when(
+      COUNTYFP == 1 ~ "Alameda, CA",
+      COUNTYFP == 85 ~ "Santa Clara, CA",
+      COUNTYFP == 3 ~ "Allegheny, PA"
+    )
+  )
+  #清理数据
+target_counties_clean <- target_counties %>%
+  filter(
+    is.finite(Median_household_income),
+    is.finite(Median_house_value),
+    Median_household_income > 0,
+    Median_house_value > 0
+  )
+  #绘图
+ggplot(target_counties_clean, aes(x = Median_household_income, y = Median_house_value)) +
+  geom_point(alpha = 0.6, size = 2, aes(color = County)) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1, aes(color = County)) +
+  facet_wrap(~ County, scales = "free") +
+  scale_y_continuous(labels = scales::dollar) +
+  scale_x_continuous(labels = scales::dollar) +
+  labs(
+    x = "Median Household Income",
+    y = "Median House Value",
+    title = "House Value vs. Household Income by County",
+    subtitle = paste("Clean data with", nrow(target_counties_clean), "observations")
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
 ```
 
 MB.Ch1.11. Run the following code:
+Explain the output from the successive uses of table().
 ```{r}
+#1. 初始创建gender因子
 gender <- factor(c(rep("female", 91), rep("male", 92)))
 table(gender)
+#2.指定因子水平顺序
 gender <- factor(gender, levels=c("male", "female"))
 table(gender)
-gender <- factor(gender, levels=c("Male", "female"))
-# Note the mistake: "Male" should be "male"
+#通过levels参数将水平顺序强制设为male在前、female在后
+#3.修改水平标签（首字母大小写）
+gender <- factor(gender, levels=c("Male", "female"))  # "Male" ≠ "male"
 table(gender)
+#4.显示包含NA的统计
 table(gender, exclude=NULL)
-rm(gender)  # Remove gender
+#5.清理环境
+rm(gender)  # 删除gender变量
+
 ```
-Explain the output from the successive uses of table().
-     
+
+
 MB.Ch1.12. Write a function that calculates the proportion of values in a vector x that exceed some value cutoff.
 
 (a) Use the sequence of numbers 1, 2, . . . , 100 to check that this function gives the result that is expected.
-```{r}
 
+```{r}
+#函数实现
+prop_above_cutoff <- function(x, cutoff) {
+  mean(x > cutoff, na.rm = TRUE)
+}
+# 生成测试序列
+test_vec <- 1:100
+# 验证不同阈值
+cutoffs <- c(50, 75, 90, 101)
+results <- sapply(cutoffs, function(c) {
+  prop_above_cutoff(test_vec, c)
+})
+# 输出结果
+data.frame(
+  Cutoff = cutoffs,
+  Expected_Prop = (100 - cutoffs) / 100,  # 理论比例
+  Actual_Prop = results
+)
 ```
 
 (b) Obtain the vector ex01.36 from the Devore6 (or Devore7) package. These data give the times required for individuals to escape from an oil platform during a drill. Use dotplot() to show the distribution of times. Calculate the proportion of escape times that exceed 7 minutes.
-```{r}
 
+```{r}
+my_data <- dplyr::select(iris, Species)  # 确保使用dplyr的select
+hills_data <- MASS::hills                # 确保使用MASS的hills
+# 加载数据
+data(ex01.36)
+escape_times <- ex01.36$C1
+# 绘制点图
+dotplot(escape_times, 
+        xlab = "Escape Time (minutes)",
+        ylab = "Frequency",
+        main = "Distribution of Escape Times from Oil Platform")
+# 计算比例
+prop_over_7min <- prop_above_cutoff(escape_times, 420)
+print(paste("Proportion exceeding 7 minutes:", round(prop_over_7min, 3)))
 ```
 
 MB.Ch1.18. The Rabbit data frame in the MASS library contains blood pressure change measurements on five rabbits (labeled as R1, R2, . . . ,R5) under various control and treatment conditions. Read the help file for more information. Use the unstack() function (three times) to convert Rabbit to the following form:
 
-Treatment Dose   R1   R2   R3   R4   R5 
+Treatment Dose R1 R2 R3 R4 R5
 
-1 Control 6.25  0.50 1.00 0.75 1.25 1.5 
+1 Control 6.25 0.50 1.00 0.75 1.25 1.5
 
-2 Control 12.50 4.50 1.25 3.00 1.50 1.5 
+2 Control 12.50 4.50 1.25 3.00 1.50 1.5
 
 ....
+
 ```{r}
-
+data(Rabbit)
+# 第一次 unstack(): 将血压变化按兔子和处理条件分组
+unstacked1 <- unstack(Rabbit, BPchange ~ Animal)
+# 第二次 unstack(): 处理剂量信息
+unstacked2 <- unstack(Rabbit, Dose ~ Treatment)
+# 第三次 unstack(): 可能需要进一步整理数据格式
+# 最终整理
+result <- data.frame(
+  Treatment = rep(unique(Rabbit$Treatment), each = length(unique(Rabbit$Dose))/length(unique(Rabbit$Treatment))),
+  Dose = unique(Rabbit$Dose),
+  R1 = unstacked1$R1,
+  R2 = unstacked1$R2,
+  R3 = unstacked1$R3,
+  R4 = unstacked1$R4,
+  R5 = unstacked1$R5
+)
+# 查看结果
+result
 ```
-
