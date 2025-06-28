@@ -5,15 +5,80 @@ date: "2025-06-28"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+gapminder <- read_csv("data/gapminder.csv")
+View(gapminder)
 ```
 
 
 ```{r cars}
-summary(cars)
+View(gapminder)
 ```
 
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+head(gapminder)# shows first 6
 ```
+```{r}
+tail(gapminder)# shows last 6
+```
+```{r}
+head(gapminder, 10) # shows first X that you indicate
+```
+```{r}
+str(gapminder) # ?str - displays the structure of an object
+```
+```{r}
+filter(gapminder, lifeExp < 29)#过滤操作
+```
+```{r}
+filter(gapminder, country == "Mexico")
+```
+```{r}
+filter(gapminder, country %in% c("Mexico", "Peru"))#保留两个
+```
+```{r}
+filter(gapminder, country == "Mexico", year == 2002)#过滤两种
+```
+```{r}
+gap1 <- dplyr::select(gapminder, year, country, lifeExp)
+head(gap1, 3)
+```
+```{r}
+gap2 <- dplyr::select(gapminder, year:lifeExp) 
+head(gap2, 3)
+```
+```{r}
+gap3 <- dplyr::select(gapminder, 1, 2, 4) 
+head(gap3, 3)
+```
+```{r}
+gap4 <- dplyr::select(gapminder, -continent, -lifeExp) # you can use 
+head(gap4, 3)
+```
+```{r}
+gap_cambodia <- filter(gapminder, country == "Cambodia")
+gap_cambodia2 <- dplyr::select(gap_cambodia, -continent, -lifeExp)
+```
+```{r}
+gapminder |> head(3)
+```
+```{r}
+gap_cambodia <- gapminder |> filter(country == "Cambodia")#管道“然后”（右边整体为临时变量）
+```
+```{r}
+gap_cambodia2 <- gap_cambodia |> dplyr::select(-continent, -lifeExp)
+```
+```{r}
+gap_cambodia <- gapminder |> 
+ filter(country == "Cambodia") |>
+ dplyr::select(-continent, -lifeExp)#管道串联操作
+```
+
+
+
+
+
+
+
+
