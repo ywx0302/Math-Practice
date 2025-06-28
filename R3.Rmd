@@ -1,0 +1,178 @@
+---
+title: "R3"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    extra_dependencies: ["ctex"]
+  html_document:
+    df_print: paged
+date: "2025-06-28"
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## R Markdown
+
+```{r}
+library(tidyverse)
+#National Parks in California
+ca <- read_csv("data/ca.csv") 
+#Acadia National Park
+acadia <- read_csv("data/acadia.csv")
+#Southeast US National Parks
+se <- read_csv("data/se.csv")
+#2016 Visitation for all Pacific West National Parks
+visit_16 <- read_csv("data/visit_16.csv")
+#All Nationally designated sites in Massachusetts
+mass <- read_csv("data/mass.csv")
+```
+
+```{r}
+head(ca)
+```
+
+```{r}
+ggplot(data = ca) +
+ geom_point(aes(x = year, y = visitors))
+```
+
+```{r}
+ggplot(data = ca) +
+ geom_point(aes(x = year, y = visitors, color = park_name))
+```
+
+```{r}
+ggplot(data = ca) +
+ geom_point(aes(x = year, y = visitors, color = park_name)) +
+ labs(x = "Year",
+ y = "Visitation",
+ title = "California National Park Visitation") +
+ theme_bw() +
+ theme(legend.title=element_blank())
+```
+
+```{r}
+ggplot(data = se) +
+ geom_point(aes(x = year, y = visitors)) +
+ facet_wrap(~ state)+
+  theme_bw()
+```
+
+```{r}
+ggplot(data = se) +
+ geom_point(aes(x = year, y = visitors, color = park_name)) +
+ facet_wrap(~ state, scales = "free")
+```
+
+```{r}
+ggplot(data = se) + 
+ geom_jitter(aes(x = park_name, y = visitors, color = park_name),
+ width = 0.1, 
+ alpha = 0.4) +
+ coord_flip() +
+ theme(legend.position = "none")
+```
+
+```{r}
+ggplot(se, aes(x = park_name, y = visitors)) + 
+ geom_boxplot() +
+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(se, aes(x = year, y = visitors, color = park_name)) +
+ geom_line()
+```
+
+```{r}
+ggplot(data = acadia) + 
+ geom_point(aes(x = year, y = visitors)) +
+ geom_line(aes(x = year, y = visitors)) +
+ geom_smooth(aes(x = year, y = visitors)) +
+ labs(title = "Acadia National Park Visitation",
+ y = "Visitation",
+ x = "Year") +
+ theme_bw()
+```
+
+```{r}
+ggplot(data = visit_16, aes(x = state)) + 
+ geom_bar()
+```
+
+```{r}
+ggplot(data = visit_16, aes(x = state,y=visitors,fill = park_name)) + 
+ geom_bar(stat = "identity", position = "dodge")
+```
+
+```{r}
+my_plot <- ggplot(data = mass) + 
+ geom_bar(aes(x = type, fill = park_name)) +
+ labs(x = "", y = "")+
+ theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+ggsave("name_of_file.png", my_plot, width = 15, height = 10)
+```
+```{r}
+data(mtcars) #1 
+mtcars |> ggplot(aes(x=wt, y=mpg)) + 
+ geom_point() + 
+ geom_smooth(method="lm", se=FALSE, color="red") + 
+ geom_smooth(method="loess", se=FALSE,
+ color="blue", linetype="dashed") +
+ labs(title = "Basic Scatter Plot of MPG vs. Weight",
+ x = "Car Weight (lbs/1000)", y = "Miles Per Gallon")
+```
+```{r}
+mtcars |> ggplot(aes(x=wt, y=mpg, color=factor(cyl),
+ shape=factor(cyl))) +
+ geom_point(size=2) +
+ geom_smooth(method="lm", se=FALSE) + 
+ geom_smooth(method="loess", se=FALSE, linetype="dashed") + 
+ labs(title = "Scatter Plot of MPG vs. Weight", 
+ subtitle = "By Number of Cylinders", 
+ x = "Car Weight (lbs/1000)", y = "Miles Per Gallon", 
+ color = "Number of \nCylinders", 
+ shape = "Number of \nCylinders") +
+ theme_bw()
+```
+```{r}
+library(GGally) 
+ggpairs(mtcars[c("mpg","disp","drat", "wt")])
+```
+```{r}
+mtcars |> ggplot(aes(x = wt, y = mpg, size = disp)) +
+ geom_point() +
+ labs(title="Bubble Plot with point size proportional to displacement",
+ x="Weight of Car (lbs/1000)", y="Miles Per Gallon")
+```
+```{r}
+mtcars |> ggplot(aes(x = wt, y = mpg, size = disp,
+ fill=factor(cyl))) +
+ geom_point(alpha = .5, color = "black", shape = 21) +
+ scale_size_continuous(range = c(1, 10)) +
+ labs(title = "Auto mileage by weight and horsepower",
+ subtitle = "Motor Trend US Magazine (1973-74 models)", 
+ x = "Weight (1000 lbs)",
+ y = "Miles/(US) gallon", size = "Engine\ndisplacement", 
+ fill = "Cylinders") + 
+ theme_minimal()
+```
+```{r}
+library(corrgram)
+corrgram(mtcars, order=TRUE, lower.panel=panel.shade, 
+ upper.panel=panel.cor,
+ main="Corrgram of mtcars data using shading and coefficients")
+```
+```{r}
+# 列出所有合法参数
+names(par())
+
+# 检查 'usr' 是否可写
+"usr" %in% names(par())    # TRUE（存在）
+"usr" %in% names(par(no.readonly = TRUE))  # FALSE（只读）
+```
+
