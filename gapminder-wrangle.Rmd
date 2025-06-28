@@ -1,0 +1,19 @@
+---
+title: "gapminder-wrangle"
+output: pdf_document
+date: "2025-06-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cars}
+summary(cars)
+```
+
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
