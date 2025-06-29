@@ -123,10 +123,10 @@ p_data <- doctor_months %>%
 ggplot(p_data, aes(x = k, y = p_k)) +
   geom_point(aes(size = count), color = "blue") +
   geom_smooth(method = "loess", se = FALSE, color = "darkblue") +
-  labs(title = "采用概率与本月前已采用邻居数量的关系 (p_k)",
-       x = "本月前已采用邻居数量 (k)",
-       y = "采用概率 (p_k)") +
-  scale_size_continuous(name = "样本量") +
+  labs(title = "Adoption Probability vs. Number of Adopted Neighbors Before Current Month (p_k)",
+       x = "Number of Adopted Neighbors Before Current Month (k)",
+       y = "Adoption Probability (p_k)") +
+  scale_size_continuous(name = "Sample Size") +
   theme_minimal()
 ```
   c. Create a vector of estimated $q_k$ probabilities, using the data frame from (2). Plot the probabilities against the number of prior-or-contemporary-adoptee contacts $k$.
@@ -141,15 +141,17 @@ q_data <- doctor_months %>%
   ) %>%
   rename(k = n_contacts_adopted_by_now)
 
-# 绘图
-ggplot(q_data, aes(x = k, y = q_k)) +
-  geom_point(aes(size = count), color = "red") +
-  geom_smooth(method = "loess", se = FALSE, color = "darkred") +
-  labs(title = "采用概率与本月或之前已采用邻居数量的关系 (q_k)",
-       x = "本月或之前已采用邻居数量 (k)",
-       y = "采用概率 (q_k)") +
-  scale_size_continuous(name = "样本量") +
-  theme_minimal()
+# Plot  
+ggplot(q_data, aes(x = k, y = q_k)) +  
+  geom_point(aes(size = count), color = "red") +  
+  geom_smooth(method = "loess", se = FALSE, color = "darkred") +  
+  labs(  
+    title = "Adoption Probability vs. Number of Adopted Neighbors Up to Current Month (q_k)",  
+    x = "Number of Adopted Neighbors Up to Current Month (k)",  
+    y = "Adoption Probability (q_k)"  
+  ) +  
+  scale_size_continuous(name = "Sample Size") +  
+  theme_minimal()  
 ```
 
 4. Because it only conditions on information from the previous month, $p_k$ is a little easier to interpret than $q_k$.  It is the probability per month that a doctor adopts tetracycline, if they have exactly $k$ contacts who had already adopted tetracycline.
